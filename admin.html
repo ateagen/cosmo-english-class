@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Halaman Admin</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(to right, #232526, #414345);
+      color: #fff;
+      margin: 0;
+      padding: 2rem;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2rem;
+      background-color: white;
+      color: black;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 0.75rem;
+      text-align: left;
+    }
+
+    th {
+      background-color: #555;
+      color: white;
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      margin: 0.5rem 0.25rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .btn-delete {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    .btn-clear {
+      background-color: #c0392b;
+      color: white;
+    }
+
+    .btn-download {
+      background-color: #27ae60;
+      color: white;
+    }
+
+    @media (max-width: 768px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+
+      th {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+      }
+
+      td {
+        position: relative;
+        padding-left: 50%;
+        margin-bottom: 1rem;
+      }
+
+      td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 1rem;
+        font-weight: bold;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h2>Data Pendaftar</h2>
+  <div style="text-align: center; margin-bottom: 1rem;">
+    <button class="btn-clear" onclick="hapusSemua()">Hapus Semua</button>
+    <button class="btn-download" onclick="downloadExcel()">Download Excel</button>
+  </div>
+  <table id="tabelPendaftar">
+    <thead>
+      <tr>
+        <th>Nama</th>
+        <th>Alamat</th>
+        <th>Kelas</th>
+        <th>Tujuan</th>
+        <th>No WA</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    if (!sessionStorage.getItem('isAdmin')) {
+      window.location.href = 'index.html';
+    }
+
+    const data = JSON.parse(localStorage.getItem("pendaftaran")) || [];
+    const tbody = document.querySelector("#tabelPendaftar tbody");
+
+    function renderTable() {
+      tbody.innerHTML = "";
+      data.forEach((item, index) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td data-label="Nama">${item.nama}</td>
+          <td data-label="Alamat">${item.alamat}</td>
+          <td data-label="Kelas">${item.kelas}</td>
+          <td data-label="Tujuan">${item.tujuan}</td>
+          <td data-label="WA">${item.wa}</td>
+          <td data-label="Aksi">
+            <button class="btn-delete" onclick="hapus(${index})">Hapus</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function hapus(index) {
+      data.splice(index, 1);
+      localStorage.setItem("pendaftaran", JSON.stringify(data));
+      renderTable();
+    }
+
+    function hapusSemua() {
+      if (confirm("Yakin ingin menghapus semua data?")) {
+        localStorage.removeItem("pendaftaran");
+        window.location.reload();
+      }
+    }
+
+    function downloadExcel() {
+      let csv = "Nama,Alamat,Kelas,Tujuan,No WA\n";
+      data.forEach(item => {
+        csv += `${item.nama},${item.alamat},${item.kelas},${item.tujuan},${item.wa}\n`;
+      });
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "data_pendaftaran.csv";
+      link.click();
+    }
+
+    renderTable();
+  </script>
+</body>
+</html>
